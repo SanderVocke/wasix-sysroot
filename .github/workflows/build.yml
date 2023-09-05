@@ -32,7 +32,7 @@ jobs:
       - name: Patch wasix-libc
         run: |
           cd wasix-libc
-          git am ../patches/wasix-libc.*.patch
+          git apply ../patches/wasix-libc.*.patch
       
       - name: Build wasix-libc
         run: |
