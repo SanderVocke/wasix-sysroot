@@ -47,8 +47,8 @@ jobs:
         run: |
           export LLVM_TAG=$(echo "llvmorg-$(llvm-ar --version | grep -i "LLVM version" | sed -r 's/.*version ([0-9\.]+).*/\1/')")
           echo "LLVM tag: $LLVM_TAG"
-          echo "LLVM_REV=$(git ls-remote --tags https://github.com/llvm/llvm-project.git $LLVM_TAG | sed -r 's/([^ \t]*).*/\1/')" | tee $GITHUB_ENV
-          echo "LLVM_TAG=$LLVM_TAG" | tee $GITHUB_ENV
+          echo "LLVM_REV=$(git ls-remote --tags https://github.com/llvm/llvm-project.git $LLVM_TAG | sed -r 's/([^ \t]*).*/\1/')" | tee -a $GITHUB_ENV
+          echo "LLVM_TAG=$LLVM_TAG" | tee -a $GITHUB_ENV
         
       - name: Cache LLVM
         uses: actions/cache@v3
