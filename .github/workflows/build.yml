@@ -43,12 +43,25 @@ jobs:
           rm -rf /opt/wasix-sysroot
           cp -r sysroot /opt/wasix-sysroot
       
+      - name: Determine LLVM revision
+        run: |
+          rm -rf llvm-bare
+          git clone --bare https://github.com/llvm/llvm-project.git llvm-bare
+          cd llvm-bare
+          export LLVM_TAG=$(echo "llvmorg-$(llvm-ar --version | grep -i "LLVM version" | sed -r 's/.*version ([0-9\.]+).*/\1/')")
+          echo "LLVM tag: $LLVM_TAG"
+          echo "LLVM_REV=$(git ls-remote --tags origin $LLVM_TAG | sed -r 's/([^ \t]*).*/\1/')" | tee $GITHUB_ENV
+        
+      - name: Cache LLVM
+        uses: actions/cache@v3
+        with:
+          path: llvm-project
+          key: llvm-${{ env.LLVM_REV }}
+        
       - name: Checkout LLVM
         run: |
           if [ ! -d "llvm-project" ]; then git clone https://github.com/llvm/llvm-project.git; fi
           cd llvm-project
-          export LLVM_TAG=$(echo "llvmorg-$(llvm-ar --version | grep -i "LLVM version" | sed -r 's/.*version ([0-9\.]+).*/\1/')")
-          echo "LLVM tag: $LLVM_TAG"
           git fetch origin refs/tags/$LLVM_TAG
           if [ "$(git rev-parse $LLVM_TAG)" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse $LLVM_TAG) != $(git rev-parse HEAD))" && git reset --hard $LLVM_TAG && echo "checked out $(git rev-parse HEAD)"; fi
       
