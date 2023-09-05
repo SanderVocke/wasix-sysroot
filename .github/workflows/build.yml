@@ -64,7 +64,7 @@ jobs:
           mkdir -p build-compiler-rt-builtins
           cd build-compiler-rt-builtins
           export PATH="$PATH:/opt/wasix-tools/bin"
-          cmake --fresh -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt/lib/builtins
+          cmake --fresh -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt/lib/builtins
           cmake --build . --target install --parallel 4
           export CLANG_MAJOR_VERSION=$(clang --version | grep -i "clang version" | sed -r 's/.*version ([0-9]+).*/\1/')
           mkdir -p /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi
@@ -84,7 +84,7 @@ jobs:
           -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
           -DUNIX:BOOL=ON 
           -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
-          -DCMAKE_TOOLCHAIN_FILE=../clang-wasm.cmake_toolchain
+          -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain
           -DCMAKE_SYSROOT=/opt/wasix-sysroot
           -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot
           -DLIBCXX_ABI_ENABLE_EXCEPTIONS=OFF
@@ -101,7 +101,7 @@ jobs:
 
       - name: Include complementary files
         run: |
-          cp clang-wasm.cmake_toolchain /opt/wasix-sysroot/
+          cp clang-wasix.cmake_toolchain /opt/wasix-sysroot/
           cp README.md /opt/wasix-sysroot/
 
       - name: Upload sysroot
