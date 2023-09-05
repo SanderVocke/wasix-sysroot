@@ -1,4 +1,4 @@
-name: Build WASIX Sysroot
+name: Build SDK (Arch Linux)
 
 on:
   workflow_dispatch
