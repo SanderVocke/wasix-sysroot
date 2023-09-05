@@ -40,8 +40,9 @@ jobs:
         run: |
           cd wasix-libc
           TARGET_ARCH=wasm32 TARGET_OS=wasix make CC=clang AR=llvm-ar NM=llvm-nm || true
-          rm -rf /opt/wasm-sysroot
-          cp -r sysroot /opt/wasm-sysroot
+          rm -rf /opt/wasix-sdk
+          mkdir -p /opt/wasix-sdk
+          cp -r sysroot /opt/wasix-sdk/sysroot
       
       - name: Checkout LLVM
         run: |
@@ -56,25 +57,25 @@ jobs:
         run: |
           mkdir -p build-ld
           cd build-ld
-          cmake --fresh -DCMAKE_INSTALL_PREFIX=/opt/wasm-tools ../llvm-project/lld
+          cmake --fresh -DCMAKE_INSTALL_PREFIX=/opt/wasix-sdk/tools ../llvm-project/lld
           cmake --build . --target install --parallel 4
       
       - name: Build and install compiler_rt builtins
         run: |
           mkdir -p build-compiler-rt-builtins
           cd build-compiler-rt-builtins
-          export PATH="$PATH:/opt/wasm-tools/bin"
-          cmake --fresh -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasm-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasm-sysroot ../llvm-project/compiler-rt/lib/builtins
+          export PATH="$PATH:/opt/wasix-sdk/tools/bin"
+          cmake --fresh -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sdk/sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sdk/sysroot ../llvm-project/compiler-rt/lib/builtins
           cmake --build . --target install --parallel 4
           export CLANG_MAJOR_VERSION=$(clang --version | grep -i "clang version" | sed -r 's/.*version ([0-9]+).*/\1/')
           mkdir -p /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi
-          cp /opt/wasm-sysroot/lib/wasm32-wasi/libclang_rt.builtins-wasm32.a /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi/libclang_rt.builtins-wasm32.a
+          cp /opt/wasix-sdk/sysroot/lib/wasm32-wasi/libclang_rt.builtins-wasm32.a /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi/libclang_rt.builtins-wasm32.a
 
       - name: Build and install LLVM libc++
         run: >
           mkdir -p build-libcxx &&
           cd build-libcxx &&
-          export PATH="$PATH:/opt/wasm-tools/bin" &&
+          export PATH="$PATH:/opt/wasix-sdk/tools/bin" &&
           cmake
           --fresh
           -DLIBCXX_INCLUDE_BENCHMARKS=OFF
@@ -85,8 +86,8 @@ jobs:
           -DUNIX:BOOL=ON 
           -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
           -DCMAKE_TOOLCHAIN_FILE=../clang-wasm.cmake_toolchain
-          -DCMAKE_SYSROOT=/opt/wasm-sysroot
-          -DCMAKE_INSTALL_PREFIX=/opt/wasm-sysroot
+          -DCMAKE_SYSROOT=/opt/wasix-sdk/sysroot
+          -DCMAKE_INSTALL_PREFIX=/opt/wasix-sdk/sysroot
           -DLIBCXX_ABI_ENABLE_EXCEPTIONS=OFF
           -DLIBCXX_ENABLE_EXCEPTIONS=ON
           -DLIBCXX_CXX_ABI=libcxxabi
@@ -99,10 +100,15 @@ jobs:
           ../llvm-project/runtimes
           && cmake --build . --target install --parallel 4
 
+      - name: Include complementary files
+        run: |
+          cp clang-wasm.cmake_toolchain /opt/wasix-sdk/sysroot/
+          cp README.md /opt/wasix-sdk/sysroot/
+
       - name: Upload sysroot
         uses: actions/upload-artifact@v2
         with:
           name: wasix-sysroot
-          path: /opt/wasm-sysroot
+          path: /opt/wasix-sdk/sysroot
 
             
