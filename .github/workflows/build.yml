@@ -32,7 +32,9 @@ jobs:
       - name: Patch wasix-libc
         run: |
           cd wasix-libc
-          for f in ../patches/wasix-libc.*; do echo "Applying: $f"; git apply $f; done
+          git config --global user.name "wasix-sysroot builder"
+          git config --global user.email "wasix_sysroot@notreal.com"
+          git am ../patches/wasix-libc.*
       
       - name: Build wasix-libc
         run: |
