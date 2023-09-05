@@ -32,7 +32,7 @@ jobs:
       - name: Patch wasix-libc
         run: |
           cd wasix-libc
-          for f in ../patches/wasix-libc.*; do git apply $f; done
+          for f in ../patches/wasix-libc.*; do echo "Applying: $f"; git apply $f; done
       
       - name: Build wasix-libc
         run: |
