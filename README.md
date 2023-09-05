@@ -29,5 +29,5 @@ In addition to specifying the toolchain, you also need to make sure of a few thi
 `CMAKE_TOOLCHAIN_FILE` and `CMAKE_SYSROOT` should both be set by you. Example:
 
 ```
-cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/wasix-sysroot/clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/path/to/wasix-sysroot /path/to/my/project
+cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/wasix-sysroot/clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/path/to/wasix-sysroot /path/to/my/project
 ```
