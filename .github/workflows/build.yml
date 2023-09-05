@@ -45,12 +45,10 @@ jobs:
       
       - name: Determine LLVM revision
         run: |
-          rm -rf llvm-bare
-          git clone --bare https://github.com/llvm/llvm-project.git llvm-bare
-          cd llvm-bare
           export LLVM_TAG=$(echo "llvmorg-$(llvm-ar --version | grep -i "LLVM version" | sed -r 's/.*version ([0-9\.]+).*/\1/')")
           echo "LLVM tag: $LLVM_TAG"
-          echo "LLVM_REV=$(git ls-remote --tags origin $LLVM_TAG | sed -r 's/([^ \t]*).*/\1/')" | tee $GITHUB_ENV
+          echo "LLVM_REV=$(git ls-remote --tags https://github.com/llvm/llvm-project.git $LLVM_TAG | sed -r 's/([^ \t]*).*/\1/')" | tee $GITHUB_ENV
+          echo "LLVM_TAG=$LLVM_TAG" | tee $GITHUB_ENV
         
       - name: Cache LLVM
         uses: actions/cache@v3
@@ -62,8 +60,8 @@ jobs:
         run: |
           if [ ! -d "llvm-project" ]; then git clone https://github.com/llvm/llvm-project.git; fi
           cd llvm-project
-          git fetch origin refs/tags/$LLVM_TAG
-          if [ "$(git rev-parse $LLVM_TAG)" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse $LLVM_TAG) != $(git rev-parse HEAD))" && git reset --hard $LLVM_TAG && echo "checked out $(git rev-parse HEAD)"; fi
+          git fetch origin refs/tags/${{ env.LLVM_TAG }}
+          if [ "$(git rev-parse ${{ env.LLVM_TAG }})" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse ${{ env.LLVM_TAG }}) != $(git rev-parse HEAD))" && git reset --hard $LLV{{ env.LLVM_TAG }}M_TAG && echo "checked out $(git rev-parse HEAD)"; fi
       
       - name: Build and install compiler_rt builtins
         run: |
