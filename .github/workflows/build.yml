@@ -1,0 +1,106 @@
+name: Build qmldom emscripten
+
+on:
+  workflow_dispatch
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  qmldom_wasm:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --user root --workdir /
+    steps:
+      - name: Update and install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -Sy --noconfirm coreutils nodejs npm wget git cmake ninja llvm clang rsync
+
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Checkout Wasix-libc
+        run: |
+          if [ ! -d "wasix-libc" ]; then git clone https://github.com/wasix-org/wasix-libc.git; fi
+          cd wasix-libc
+          git fetch && git checkout origin/main
+          echo "libc_rev=$(git rev-parse --short HEAD)" | tee $GITHUB_ENV
+
+      - name: Patch wasix-libc
+        run: |
+          cd wasix-libc
+          git am ../patches/wasix-libc.*.patch
+      
+      - name: Build wasix-libc
+        run: |
+          cd wasix-libc
+          TARGET_ARCH=wasm32 TARGET_OS=wasix make CC=clang AR=llvm-ar NM=llvm-nm || true
+          rm -rf /opt/wasm-sysroot
+          cp -r sysroot /opt/wasm-sysroot
+      
+      - name: Checkout LLVM
+        run: |
+          if [ ! -d "llvm-project" ]; then git clone https://github.com/llvm/llvm-project.git; fi
+          cd llvm-project
+          export LLVM_TAG=$(echo "llvmorg-$(llvm-ar --version | grep -i "LLVM version" | sed -r 's/.*version ([0-9\.]+).*/\1/')")
+          echo "LLVM tag: $LLVM_TAG"
+          git fetch origin refs/tags/$LLVM_TAG
+          if [ "$(git rev-parse $LLVM_TAG)" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse $LLVM_TAG) != $(git rev-parse HEAD))" && git reset --hard $LLVM_TAG && echo "checked out $(git rev-parse HEAD)"; fi
+
+      - name: Build and install wasm-ld
+        run: |
+          mkdir -p build-ld
+          cd build-ld
+          cmake --fresh -DCMAKE_INSTALL_PREFIX=/opt/wasm-tools ../llvm-project/lld
+          cmake --build . --target install --parallel 4
+      
+      - name: Build and install compiler_rt builtins
+        run: |
+          mkdir -p build-compiler-rt-builtins
+          cd build-compiler-rt-builtins
+          export PATH="$PATH:/opt/wasm-tools/bin"
+          cmake --fresh -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../.github/workflows/files/clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasm-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasm-sysroot ../llvm-project/compiler-rt/lib/builtins
+          cmake --build . --target install --parallel 4
+          export CLANG_MAJOR_VERSION=$(clang --version | grep -i "clang version" | sed -r 's/.*version ([0-9]+).*/\1/')
+          mkdir -p /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi
+          cp /opt/wasm-sysroot/lib/wasm32-wasi/libclang_rt.builtins-wasm32.a /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi/libclang_rt.builtins-wasm32.a
+
+      - name: Build and install LLVM libc++
+        run: >
+          mkdir -p build-libcxx &&
+          cd build-libcxx &&
+          export PATH="$PATH:/opt/wasm-tools/bin" &&
+          cmake
+          --fresh
+          -DLIBCXX_INCLUDE_BENCHMARKS=OFF
+          -DCMAKE_C_COMPILER_WORKS=ON
+          -DCMAKE_CXX_COMPILER_WORKS=ON
+          -DLIBCXX_ENABLE_FILESYSTEM:BOOL=OFF
+          -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+          -DUNIX:BOOL=ON 
+          -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
+          -DCMAKE_TOOLCHAIN_FILE=../.github/workflows/files/clang-wasm.cmake_toolchain
+          -DCMAKE_SYSROOT=/opt/wasm-sysroot
+          -DCMAKE_INSTALL_PREFIX=/opt/wasm-sysroot
+          -DLIBCXX_ABI_ENABLE_EXCEPTIONS=OFF
+          -DLIBCXX_ENABLE_EXCEPTIONS=ON
+          -DLIBCXX_CXX_ABI=libcxxabi
+          -DLIBCXX_CXX_ABI_INCLUDE_PATHS=../llvm-project/libcxxabi/include
+          -DLIBCXX_LIBDIR_SUFFIX="/wasm32-wasi"
+          -DLIBCXXABI_LIBDIR_SUFFIX="/wasm32-wasi"
+          -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi"
+          -DLIBCXXABI_ENABLE_SHARED:BOOL=OFF
+          -DLIBCXX_ENABLE_SHARED:BOOL=OFF
+          ../llvm-project/runtimes
+          && cmake --build . --target install --parallel 4
+
+      - name: Upload sysroot
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasix-sysroot
+          path: /opt/wasm-sysroot
+
+            
