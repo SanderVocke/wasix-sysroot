@@ -17,7 +17,7 @@ jobs:
       - name: Update and install dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -Sy --noconfirm coreutils nodejs npm wget git cmake ninja llvm clang rsync make
+          pacman -Sy --noconfirm coreutils nodejs npm wget git cmake ninja llvm clang rsync make lld
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -51,13 +51,6 @@ jobs:
           echo "LLVM tag: $LLVM_TAG"
           git fetch origin refs/tags/$LLVM_TAG
           if [ "$(git rev-parse $LLVM_TAG)" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse $LLVM_TAG) != $(git rev-parse HEAD))" && git reset --hard $LLVM_TAG && echo "checked out $(git rev-parse HEAD)"; fi
-
-      - name: Build and install wasm-ld
-        run: |
-          mkdir -p build-ld
-          cd build-ld
-          cmake --fresh -DCMAKE_INSTALL_PREFIX=/opt/wasix-tools ../llvm-project/lld
-          cmake --build . --target install --parallel 4
       
       - name: Build and install compiler_rt builtins
         run: |

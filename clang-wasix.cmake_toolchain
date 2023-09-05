@@ -15,7 +15,7 @@ set(CMAKE_LINKER_FLAGS "-lwasi-emulated-mman")
 
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_LINKER /opt/wasm-tools/bin/wasm-ld)
+set(CMAKE_LINKER wasm-ld)
 set(CMAKE_CXX_LINK_EXECUTABLE ${CMAKE_LINKER})
 set(CMAKE_AR llvm-ar)
 
