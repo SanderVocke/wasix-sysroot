@@ -1,5 +1,5 @@
-# wasix-sdk
-A minimal SDK for building C/C++ against wasix-libc.
+# wasix-sysroot
+A minimal sysroot for building C/C++ against wasix-libc.
 
 # Background
 
@@ -7,7 +7,7 @@ A minimal SDK for building C/C++ against wasix-libc.
 
 However, where `wasi-libc` has a readily available SDK ([wasi-sdk](https://github.com/WebAssembly/wasi-sdk), which also includes a full `sysroot` in its release assets, `wasix-libc` does not. That makes it cumbersome to build against `wasix-libc`, especially when using C++, as one first needs to build `libc++` against `wasix-libc`.
 
-This repo provides scripts to build a simple "SDK" that allows C/C++ development against the full `wasix-libc` sysroot including `libc++`. It can be used to build directly using `clang` (no `wasienv` / `wasicc` needed).
+This repo provides scripts to build a sysroot that allows C/C++ development against the full `wasix-libc` including derived `libc++`. It can be used to build directly using `clang` (no `wasienv` / `wasicc` needed).
 
 # Installation
 
@@ -17,19 +17,17 @@ To build from source is a bit more complicated. Right now, the steps are embedde
 
 # Usage
 
-For building CMake projects, a toolchain file is included in the sysroot at `sysroot/clang-wasm.cmake_toolchain`.
+For building CMake projects, a toolchain file is included in the sysroot at `wasix-sysroot/clang-wasm.cmake_toolchain`.
 In addition to specifying the toolchain, you also need to make sure of a few things:
 
-### Ensure the wasm-ld linker is in the path
+### Ensure the wasm-ld is available
 
-```
-export PATH="$PATH:/path/to/wasix-sdk/tools/bin"
-```
+`wasm-ld` is needed for linking. It is usually available in your system's linking package. It should be in the `PATH`.
 
 ### Build with the correct CMAKE settings
 
 `CMAKE_TOOLCHAIN_FILE` and `CMAKE_SYSROOT` should both be set by you. Example:
 
 ```
-cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/wasix-sdk/clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/path/to/wasix-sdk/sysroot /path/to/my/project
+cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/wasix-sysroot/clang-wasm.cmake_toolchain -DCMAKE_SYSROOT=/path/to/wasix-sysroot /path/to/my/project
 ```
