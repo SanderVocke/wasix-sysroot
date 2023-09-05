@@ -61,7 +61,7 @@ jobs:
           if [ ! -d "llvm-project" ]; then git clone https://github.com/llvm/llvm-project.git; fi
           cd llvm-project
           git fetch origin refs/tags/${{ env.LLVM_TAG }}
-          if [ "$(git rev-parse ${{ env.LLVM_TAG }})" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse ${{ env.LLVM_TAG }}) != $(git rev-parse HEAD))" && git reset --hard $LLV{{ env.LLVM_TAG }}M_TAG && echo "checked out $(git rev-parse HEAD)"; fi
+          if [ "$(git rev-parse ${{ env.LLVM_TAG }})" != "$(git rev-parse HEAD)" ]; then echo "Checkout ($(git rev-parse ${{ env.LLVM_TAG }}) != $(git rev-parse HEAD))" && git reset --hard ${{ env.LLVM_TAG }} && echo "checked out $(git rev-parse HEAD)"; fi
       
       - name: Build and install compiler_rt builtins
         run: |
