@@ -9,14 +9,13 @@ set(triple wasm32-unknown-wasi)
 set(CMAKE_C_COMPILER_TARGET ${triple})
 set(CMAKE_CXX_COMPILER_TARGET ${triple})
 set(CMAKE_ASM_COMPILER_TARGET ${triple})
-set(CMAKE_C_FLAGS "-D_WASI_EMULATED_MMAN")
-set(CMAKE_CXX_FLAGS "-D_WASI_EMULATED_MMAN")
-set(CMAKE_LINKER_FLAGS "-lwasi-emulated-mman")
+set(CMAKE_C_FLAGS "-D_WASI_EMULATED_MMAN -fwasm-exceptions -mllvm -wasm-enable-sjlj")
+set(CMAKE_CXX_FLAGS "-D_WASI_EMULATED_MMAN -fwasm-exceptions -mllvm -wasm-enable-sjlj")
+set(CMAKE_LINKER_FLAGS "-lwasi-emulated-mman -fwasm-exceptions -mllvm -wasm-enable-sjlj")
 
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_LINKER wasm-ld)
-set(CMAKE_CXX_LINK_EXECUTABLE ${CMAKE_LINKER})
 set(CMAKE_AR llvm-ar)
 
 # Don't look in the sysroot for executables to run during the build

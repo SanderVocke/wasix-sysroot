@@ -1,0 +1,34 @@
+From f85c1e80be293dd3946f36ddfcd404d2634896f2 Mon Sep 17 00:00:00 2001
+From: wasix-sysroot builder <wasix_sysroot@notreal.com>
+Date: Wed, 6 Sep 2023 10:17:42 +0000
+Subject: [PATCH 2/2] Fix duplicate memcpy
+
+---
+ libc-top-half/musl/include/sched.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/libc-top-half/musl/include/sched.h b/libc-top-half/musl/include/sched.h
+index 3d3fbe8..c5f25b1 100644
+--- a/libc-top-half/musl/include/sched.h
++++ b/libc-top-half/musl/include/sched.h
+@@ -5,6 +5,7 @@ extern "C" {
+ #endif
+ 
+ #include <features.h>
++#include <__functions_memcpy.h>
+ 
+ #define __NEED_struct_timespec
+ #define __NEED_pid_t
+@@ -81,9 +82,7 @@ int clone (int (*)(void *), void *, int, void *, ...);
+ int unshare(int);
+ int setns(int, int);
+ 
+-void *memcpy(void *__restrict, const void *__restrict, size_t);
+ int memcmp(const void *, const void *, size_t);
+-void *memset (void *, int, size_t);
+ void *calloc(size_t, size_t);
+ void free(void *);
+ 
+-- 
+2.42.0
+

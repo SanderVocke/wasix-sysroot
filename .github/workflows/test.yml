@@ -1,0 +1,51 @@
+name: Build qmldom (WASM)
+
+on:
+  workflow_dispatch:
+    inputs:
+      sysroot_link:
+        description: 'Link to sysroot .zip file'
+        required: true
+        default: https://github.com/SanderVocke/wasix-sysroot/releases/download/v1.0.0
+      override_toolchain_file:
+        description: 'Use toolchain file instead of from download package'
+        required: true
+        default: '/opt/wasix-sysroot/clang-wasix.cmake_toolchain'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --user root --workdir /
+    steps:
+      - name: Update and install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -Sy --noconfirm coreutils nodejs npm wget git cmake ninja clang rsync lld unzip wasmer make
+
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Install WASIX sysroot
+        run: |
+          rm -rf wasix-sysroot.zip
+          wget ${{ github.event.inputs.sysroot_link }}/wasix-sysroot.zip
+          rm -rf /opt/wasix-sysroot
+          unzip wasix-sysroot.zip -d /opt/wasix-sysroot
+
+      - name: Install builtins
+        run: |
+          export CLANG_MAJOR=$(clang --version | grep "clang version" | sed -r 's/.*version[ ]*([0-9]+).*/\1/')
+          mkdir -p /usr/lib/clang/16/lib/wasi
+          cp /opt/wasix-sysroot/lib/wasm32-wasi/libclang_rt.builtins-wasm32.a /usr/lib/clang/16/lib/wasi/
+
+      - name: Run tests
+        run: |
+          export WD=$(pwd)
+          cp ${{ github.event.inputs.override_toolchain_file }} toolchain.cmake
+          TOOLCHAIN=$WD/toolchain.cmake ./tests/run_tests.sh
