@@ -8,7 +8,7 @@ permissions:
   checks: write
 
 jobs:
-  build_sysroot:
+  build:
     runs-on: ubuntu-latest
     container:
       image: archlinux:base-devel
@@ -17,7 +17,7 @@ jobs:
       - name: Update and install dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -Sy --noconfirm coreutils nodejs npm wget git cmake ninja llvm clang rsync make lld
+          pacman -Sy --noconfirm coreutils nodejs npm wget git cmake ninja llvm clang rsync make lld wasmer
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -34,7 +34,8 @@ jobs:
           cd wasix-libc
           git config --global user.name "wasix-sysroot builder"
           git config --global user.email "wasix_sysroot@notreal.com"
-          git am ../patches/wasix-libc.*
+          git reset --hard
+          git apply ../patches/wasix-libc.*
       
       - name: Build wasix-libc
         run: |
@@ -52,6 +53,7 @@ jobs:
         
       - name: Cache LLVM
         uses: actions/cache@v3
+        if: ${{ !env.ACT }}
         with:
           path: llvm-project
           key: llvm-${{ env.LLVM_REV }}
@@ -67,8 +69,7 @@ jobs:
         run: |
           mkdir -p build-compiler-rt-builtins
           cd build-compiler-rt-builtins
-          export PATH="$PATH:/opt/wasix-tools/bin"
-          cmake --fresh -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt/lib/builtins
+          cmake --fresh -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt/lib/builtins
           cmake --build . --target install --parallel 4
           export CLANG_MAJOR_VERSION=$(clang --version | grep -i "clang version" | sed -r 's/.*version ([0-9]+).*/\1/')
           mkdir -p /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi
@@ -78,23 +79,20 @@ jobs:
         run: >
           mkdir -p build-libcxx &&
           cd build-libcxx &&
-          export PATH="$PATH:/opt/wasix-tools/bin" &&
           cmake
           --fresh
           -DLIBCXX_INCLUDE_BENCHMARKS=OFF
           -DCMAKE_C_COMPILER_WORKS=ON
           -DCMAKE_CXX_COMPILER_WORKS=ON
           -DLIBCXX_ENABLE_FILESYSTEM:BOOL=OFF
-          -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
           -DUNIX:BOOL=ON 
           -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
           -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain
           -DCMAKE_SYSROOT=/opt/wasix-sysroot
           -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot
-          -DLIBCXX_ABI_ENABLE_EXCEPTIONS=OFF
-          -DLIBCXX_ENABLE_EXCEPTIONS=ON
+          -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF
+          -DLIBCXX_ENABLE_EXCEPTIONS=OFF
           -DLIBCXX_CXX_ABI=libcxxabi
-          -DLIBCXX_CXX_ABI_INCLUDE_PATHS=../llvm-project/libcxxabi/include
           -DLIBCXX_LIBDIR_SUFFIX="/wasm32-wasi"
           -DLIBCXXABI_LIBDIR_SUFFIX="/wasm32-wasi"
           -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi"
@@ -102,16 +100,21 @@ jobs:
           -DLIBCXX_ENABLE_SHARED:BOOL=OFF
           ../llvm-project/runtimes
           && cmake --build . --target install --parallel 4
-
+      
       - name: Include complementary files
         run: |
           cp clang-wasix.cmake_toolchain /opt/wasix-sysroot/
           cp README.md /opt/wasix-sysroot/
 
       - name: Upload sysroot
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v2
         with:
           name: wasix-sysroot
           path: /opt/wasix-sysroot
+      
+      - name: Run tests
+        run: |
+          TOOLCHAIN=/opt/wasix-sysroot/clang-wasix.cmake_toolchain ./tests/run_tests.sh
 
             

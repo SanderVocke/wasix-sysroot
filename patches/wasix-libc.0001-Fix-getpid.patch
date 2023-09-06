@@ -1,0 +1,25 @@
+From 2cd4c3902a3f84bc4ee8f7bd0fa3f273f26d1edd Mon Sep 17 00:00:00 2001
+From: wasix-sysroot builder <wasix_sysroot@notreal.com>
+Date: Wed, 6 Sep 2023 10:15:54 +0000
+Subject: [PATCH 1/2] Fix getpid
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index a424ef7..d9ef327 100644
+--- a/Makefile
++++ b/Makefile
+@@ -69,7 +69,7 @@ LIBWASI_EMULATED_MMAN_SOURCES = \
+ LIBWASI_EMULATED_PROCESS_CLOCKS_SOURCES = \
+     $(sort $(shell find $(LIBC_BOTTOM_HALF_DIR)/clocks -name \*.c))
+ LIBWASI_EMULATED_GETPID_SOURCES = \
+-    $(sort $(shell find $(LIBC_BOTTOM_HALF_DIR)/getpid -name \*.c))
++    $(sort $(shell find $(LIBC_BOTTOM_HALF_DIR)/sources/getpid -name \*.c))
+ LIBWASI_EMULATED_SIGNAL_SOURCES = \
+     $(sort $(shell find $(LIBC_BOTTOM_HALF_DIR)/signal -name \*.c))
+ LIBC_BOTTOM_HALF_CRT_SOURCES = $(wildcard $(LIBC_BOTTOM_HALF_DIR)/crt/*.c)
+-- 
+2.42.0
+
