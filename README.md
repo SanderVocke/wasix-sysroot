@@ -13,7 +13,7 @@ This repo provides scripts to build a sysroot that allows C/C++ development agai
 
 Grab one of the releases from this repo.
 
-To build from source is a bit more complicated. Right now, the steps are embedded in a Github Actions script. Please check and replicate the steps from .github/workflows/build.yml.
+To build from source is a bit more complicated. Right now, the steps are embedded in a Github Actions script. Please check and replicate the steps from `.github/workflows/build.yml`. Obviously, since the whole sysroot is `wasm`, it's cross-platform so the pre-built sysroot should suffice whatever your platform is.
 
 # Usage
 
