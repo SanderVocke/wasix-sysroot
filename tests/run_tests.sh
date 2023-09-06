@@ -1,5 +1,5 @@
 #!/bin/bash
-WD=$(pwd)
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 TESTS=
 STATUS=0
 FAILED_TESTS=""
@@ -8,15 +8,15 @@ PASSED_TESTS=""
 if [ ! -z "${@:1}" ]; then
     TESTS=${@:1}
 else
-    TESTS=$(cd $WD/tests && ls -d */)
+    TESTS=$(cd $SCRIPT_DIR && ls -d */)
 fi
 
 for test in $TESTS; do
-    mkdir -p $WD/test-builds/${test}
-    cd $WD/test-builds/${test}
-    cmake --fresh -DCMAKE_MAKE_PROGRAM=make -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN -DCMAKE_SYSROOT=/opt/wasix-sysroot $WD/tests/${test}
+    mkdir -p $SCRIPT_DIR/../test-builds/${test}
+    cd $SCRIPT_DIR/../test-builds/${test}
+    cmake --fresh -DCMAKE_MAKE_PROGRAM=make -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN -DCMAKE_SYSROOT=/opt/wasix-sysroot $SCRIPT_DIR/${test}
     cmake --build . --target all
-    bash $WD/tests/${test}/test.sh
+    bash $SCRIPT_DIR/${test}/test.sh
     RESULT=$?
     if [ $RESULT -eq 0 ]; then
         PASSED_TESTS="$PASSED_TESTS $test"

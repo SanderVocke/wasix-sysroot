@@ -8,7 +8,7 @@ permissions:
   checks: write
 
 jobs:
-  build_sysroot:
+  build:
     runs-on: ubuntu-latest
     container:
       image: archlinux:base-devel
@@ -95,7 +95,7 @@ jobs:
           -DLIBCXX_CXX_ABI=libcxxabi
           -DLIBCXX_LIBDIR_SUFFIX="/wasm32-wasi"
           -DLIBCXXABI_LIBDIR_SUFFIX="/wasm32-wasi"
-          -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind"
+          -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi"
           -DLIBCXXABI_ENABLE_SHARED:BOOL=OFF
           -DLIBCXX_ENABLE_SHARED:BOOL=OFF
           ../llvm-project/runtimes
