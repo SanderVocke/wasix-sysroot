@@ -22,7 +22,7 @@ In addition to specifying the toolchain, you also need to make sure of a few thi
 
 ### Ensure the wasm-ld is available
 
-`wasm-ld` is needed for linking. It is usually available in your system's linking package. It should be in the `PATH`.
+`wasm-ld` is needed for linking. It is usually available in your system's `LLVM` linker package. It should be in the `PATH`.
 
 ### Build with the correct CMAKE settings
 
