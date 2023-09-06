@@ -90,8 +90,8 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain
           -DCMAKE_SYSROOT=/opt/wasix-sysroot
           -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot
-          -DLIBCXXABI_ENABLE_EXCEPTIONS=ON
-          -DLIBCXX_ENABLE_EXCEPTIONS=ON
+          -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF
+          -DLIBCXX_ENABLE_EXCEPTIONS=OFF
           -DLIBCXX_CXX_ABI=libcxxabi
           -DLIBCXX_LIBDIR_SUFFIX="/wasm32-wasi"
           -DLIBCXXABI_LIBDIR_SUFFIX="/wasm32-wasi"
@@ -101,27 +101,6 @@ jobs:
           ../llvm-project/runtimes
           && cmake --build . --target install --parallel 4
       
-      # - name: Build and install LLVM compiler-rt
-      #   run: |
-      #     mkdir -p build-compiler-rt
-      #     cd build-compiler-rt
-      #     cmake --fresh -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt
-      #     cmake --build . --target install --parallel 4
-
-      # - name: Build and install LLVM libgcc
-      #   run: |
-      #     mkdir -p build-libgcc
-      #     cd build-libgcc
-      #     cmake --fresh -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/llvm-libgcc
-      #     cmake --build . --target install --parallel 4
-
-      # - name: Build and install LLVM libunwind
-      #   run: |
-      #     mkdir -p build-libunwind
-      #     cd build-libunwind
-      #     cmake --fresh -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/libunwind
-      #     cmake --build . --target install --parallel 4
-
       - name: Include complementary files
         run: |
           cp clang-wasix.cmake_toolchain /opt/wasix-sysroot/
