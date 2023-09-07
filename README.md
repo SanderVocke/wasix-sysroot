@@ -9,6 +9,10 @@ However, where `wasi-libc` has a readily available SDK ([wasi-sdk](https://githu
 
 This repo provides scripts to build a sysroot that allows C/C++ development against the full `wasix-libc` including derived `libc++`. It can be used to build directly using `clang` (no `wasienv` / `wasicc` needed).
 
+# Status
+
+The sysroot builds, but has not been extensively tested. Some issues have been identified (see the issue tracker). There are some tests included which show the status of several WASIX features.
+
 # Installation
 
 Grab one of the releases from this repo.
