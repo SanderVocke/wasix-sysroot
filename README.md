@@ -11,7 +11,7 @@ This repo provides scripts to build a sysroot that allows C/C++ development agai
 
 # Status
 
-The sysroot builds, but has not been extensively tested. Some issues have been identified (see the issue tracker). There are some tests included which show the status of several WASIX features.
+The sysroot builds, but has not been extensively tested. Some issues have been identified (see the issue tracker). There are some tests included which show the status of several WASIX features. The CI test of this repo shows as "failed" as long as some of these tests still fail.
 
 # Installation
 
