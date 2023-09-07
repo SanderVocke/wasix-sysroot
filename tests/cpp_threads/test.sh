@@ -8,4 +8,4 @@ if [ "$RESULT" != "0" ]; then
     exit 1
 fi
 
-echo "cpp_pthreads test passed"
+echo "cpp_threads test passed"

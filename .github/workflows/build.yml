@@ -48,10 +48,10 @@ jobs:
       - name: Build wasix-libc
         run: |
           cd wasix-libc
-          TARGET_ARCH=wasm32 TARGET_OS=wasix make CC=clang AR=llvm-ar NM=llvm-nm || true
+          TARGET_ARCH=wasm32 TARGET_OS=wasix CC=clang AR=llvm-ar NM=llvm-nm THREAD_MODEL=posix make || true
           rm -rf /opt/wasix-sysroot
           cp -r sysroot /opt/wasix-sysroot
-      
+
       - name: Determine LLVM revision
         run: |
           export LLVM_TAG=$(echo "llvmorg-$(llvm-ar --version | grep -i "LLVM version" | sed -r 's/.*version ([0-9\.]+).*/\1/')")
@@ -77,7 +77,7 @@ jobs:
         run: |
           mkdir -p build-compiler-rt-builtins
           cd build-compiler-rt-builtins
-          cmake --fresh -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt/lib/builtins
+          cmake --fresh -DCOMPILER_RT_BAREMETAL_BUILD=On -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCOMPILER_RT_OS_DIR=wasm32-wasi -DCOMPILER_RT_DEFAULT_TARGET_ONLY:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain -DCMAKE_SYSROOT=/opt/wasix-sysroot -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot ../llvm-project/compiler-rt/lib/builtins
           cmake --build . --target install --parallel 4
           export CLANG_MAJOR_VERSION=$(clang --version | grep -i "clang version" | sed -r 's/.*version ([0-9]+).*/\1/')
           mkdir -p /usr/lib/clang/$CLANG_MAJOR_VERSION/lib/wasi
@@ -89,23 +89,39 @@ jobs:
           cd build-libcxx &&
           cmake
           --fresh
-          -DLIBCXX_INCLUDE_BENCHMARKS=OFF
-          -DCMAKE_C_COMPILER_WORKS=ON
-          -DCMAKE_CXX_COMPILER_WORKS=ON
-          -DLIBCXX_ENABLE_FILESYSTEM:BOOL=OFF
-          -DUNIX:BOOL=ON 
-          -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
           -DCMAKE_TOOLCHAIN_FILE=../clang-wasix.cmake_toolchain
           -DCMAKE_SYSROOT=/opt/wasix-sysroot
           -DCMAKE_INSTALL_PREFIX=/opt/wasix-sysroot
-          -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF
-          -DLIBCXX_ENABLE_EXCEPTIONS=OFF
-          -DLIBCXX_CXX_ABI=libcxxabi
-          -DLIBCXX_LIBDIR_SUFFIX="/wasm32-wasi"
-          -DLIBCXXABI_LIBDIR_SUFFIX="/wasm32-wasi"
-          -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi"
-          -DLIBCXXABI_ENABLE_SHARED:BOOL=OFF
+          -DCXX_SUPPORTS_CXX11=ON
+          -DLIBCXX_ENABLE_THREADS:BOOL=ON
+          -DLIBCXX_HAS_PTHREAD_API:BOOL=ON
+          -DLIBCXX_HAS_EXTERNAL_THREAD_API:BOOL=OFF
+          -DLIBCXX_BUILD_EXTERNAL_THREAD_LIBRARY:BOOL=OFF
+          -DLIBCXX_HAS_WIN32_THREAD_API:BOOL=OFF
+          -DCMAKE_BUILD_TYPE=RelWithDebugInfo
           -DLIBCXX_ENABLE_SHARED:BOOL=OFF
+          -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY:BOOL=OFF
+          -DLIBCXX_ENABLE_EXCEPTIONS:BOOL=OFF
+          -DLIBCXX_ENABLE_FILESYSTEM:BOOL=OFF
+          -DLIBCXX_CXX_ABI=libcxxabi
+          -DLIBCXX_HAS_MUSL_LIBC:BOOL=ON
+          -DLIBCXX_ABI_VERSION=2
+          -DLIBCXXABI_ENABLE_EXCEPTIONS:BOOL=OFF
+          -DLIBCXXABI_ENABLE_SHARED:BOOL=OFF
+          -DLIBCXXABI_SILENT_TERMINATE:BOOL=ON
+          -DLIBCXXABI_ENABLE_THREADS:BOOL=ON
+          -DLIBCXXABI_HAS_PTHREAD_API:BOOL=ON
+          -DLIBCXXABI_HAS_EXTERNAL_THREAD_API:BOOL=OFF
+          -DLIBCXXABI_BUILD_EXTERNAL_THREAD_LIBRARY:BOOL=OFF
+          -DLIBCXXABI_HAS_WIN32_THREAD_API:BOOL=OFF
+          -DLIBCXXABI_ENABLE_PIC:BOOL=OFF
+          -DCMAKE_C_COMPILER_WORKS=ON
+          -DCMAKE_CXX_COMPILER_WORKS=ON
+          -DLLVM_COMPILER_CHECKED=ON
+          -DUNIX:BOOL=ON
+          -DLIBCXX_LIBDIR_SUFFIX=/wasm32-wasi
+          -DLIBCXXABI_LIBDIR_SUFFIX=/wasm32-wasi
+          -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi"
           ../llvm-project/runtimes
           && cmake --build . --target install --parallel 4
       

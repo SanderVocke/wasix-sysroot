@@ -1,6 +1,11 @@
 # wasix-sysroot
 A minimal sysroot for building C/C++ against wasix-libc.
 
+# NOTICE
+
+Rather than continue this repo, maintainers of `wasix-libc` have suggested to merge the build scripts from here into `wasix-libc` and release a sysroot from there. For the time being, will keep this repository up as long as there are no releases from the `wasix-libc` side.
+
+
 # Background
 
 [wasix-libc](https://github.com/wasix-org/wasix-libc) provides a variant of [wasi-libc](https://github.com/WebAssembly/wasi-libc) with useful extensions which are supported in the [Wasmer](https://github.com/wasmerio/wasmer) WASM runtime.
